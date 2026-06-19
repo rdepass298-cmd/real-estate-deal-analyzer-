@@ -68,6 +68,7 @@ export default function RentalAnalysisPage() {
     cashOnCash,
     onePercentRule,
   };
+  const professionalSheetHref = `/rental/professional-sheet?purchasePrice=${encodeURIComponent(String(purchasePrice))}&downPercent=${encodeURIComponent(String(downPercent))}&interestRate=${encodeURIComponent(String(interestRate))}&termYears=${encodeURIComponent(String(termYears))}&monthlyRent=${encodeURIComponent(String(monthlyRent))}&propertyTax=${encodeURIComponent(String(propertyTax))}&insurance=${encodeURIComponent(String(insurance))}&vacancyPercent=${encodeURIComponent(String(vacancyPercent))}&maintenancePercent=${encodeURIComponent(String(maintenancePercent))}&managementPercent=${encodeURIComponent(String(managementPercent))}&monthlyCashFlow=${encodeURIComponent(String(monthlyCashFlow))}&capRate=${encodeURIComponent(String(capRate))}&cashOnCash=${encodeURIComponent(String(cashOnCash))}&onePercentRule=${encodeURIComponent(onePercentRule ? '1' : '0')}`;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -130,6 +131,13 @@ export default function RentalAnalysisPage() {
                 <p className="mt-2 text-3xl font-semibold text-white">{onePercentRule ? 'Pass' : 'Fail'}</p>
               </div>
             </div>
+            <Link
+              href={professionalSheetHref}
+              target="_blank"
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
+            >
+              Generate Professional Sheet
+            </Link>
             <SaveDealPanel dealType="rental" inputs={saveInputs} results={saveResults} />
           </section>
         </div>

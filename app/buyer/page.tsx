@@ -55,6 +55,7 @@ export default function BuyerAffordabilityPage() {
     availableForMortgage,
     debtToIncomeCap: 43,
   };
+  const professionalSheetHref = `/buyer/professional-sheet?annualIncome=${encodeURIComponent(String(annualIncome))}&monthlyDebts=${encodeURIComponent(String(monthlyDebts))}&downPayment=${encodeURIComponent(String(downPayment))}&interestRate=${encodeURIComponent(String(interestRate))}&termYears=${encodeURIComponent(String(termYears))}&propertyTax=${encodeURIComponent(String(propertyTax))}&insurance=${encodeURIComponent(String(insurance))}&maxHomePrice=${encodeURIComponent(String(maxHomePrice))}&estimatedMortgagePayment=${encodeURIComponent(String(estimatedMortgagePayment))}&availableForMortgage=${encodeURIComponent(String(availableForMortgage))}&debtToIncomeCap=${encodeURIComponent(String(43))}`;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -114,6 +115,13 @@ export default function BuyerAffordabilityPage() {
                 <p className="mt-2 text-3xl font-semibold text-white">43%</p>
               </div>
             </div>
+            <Link
+              href={professionalSheetHref}
+              target="_blank"
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
+            >
+              Generate Professional Sheet
+            </Link>
             <SaveDealPanel dealType="buyer_affordability" inputs={saveInputs} results={saveResults} />
           </section>
         </div>

@@ -34,6 +34,7 @@ export default function FixAndFlipPage() {
     roi,
     meetsRule,
   };
+  const professionalSheetHref = `/flip/professional-sheet?purchasePrice=${encodeURIComponent(String(purchasePrice))}&rehabBudget=${encodeURIComponent(String(rehabBudget))}&holdingCosts=${encodeURIComponent(String(holdingCosts))}&sellingCostPercent=${encodeURIComponent(String(sellingCostPercent))}&arv=${encodeURIComponent(String(arv))}&totalInvestment=${encodeURIComponent(String(totalInvestment))}&netProfit=${encodeURIComponent(String(netProfit))}&roi=${encodeURIComponent(String(roi))}&meetsRule=${encodeURIComponent(meetsRule ? '1' : '0')}`;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -91,6 +92,13 @@ export default function FixAndFlipPage() {
                 <p className="mt-2 text-3xl font-semibold text-white">{meetsRule ? 'Pass' : 'Fail'}</p>
               </div>
             </div>
+            <Link
+              href={professionalSheetHref}
+              target="_blank"
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
+            >
+              Generate Professional Sheet
+            </Link>
             <SaveDealPanel dealType="fix_and_flip" inputs={saveInputs} results={saveResults} />
           </section>
         </div>
