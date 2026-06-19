@@ -54,6 +54,9 @@ export default function AuthHeader() {
           <div className="flex items-center gap-4">
             {user ? (
               <>
+                <Link href="/deals" className="text-sm font-medium text-cyan-300 transition hover:text-cyan-200">
+                  My Deals
+                </Link>
                 <span className="text-sm text-slate-300">{user.email}</span>
                 <button
                   onClick={handleLogout}

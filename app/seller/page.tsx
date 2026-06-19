@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import SaveDealPanel from '@/app/components/SaveDealPanel';
 
 const formatMoney = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value || 0);
@@ -15,6 +16,17 @@ export default function SellerNetSheetPage() {
 
   const commissionAmount = useMemo(() => (commissionPercent / 100) * salePrice, [commissionPercent, salePrice]);
   const netProceeds = salePrice - mortgagePayoff - commissionAmount - closingCosts - sellerConcessions;
+  const saveInputs = {
+    salePrice,
+    mortgagePayoff,
+    commissionPercent,
+    closingCosts,
+    sellerConcessions,
+  };
+  const saveResults = {
+    commissionAmount,
+    netProceeds,
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -64,6 +76,7 @@ export default function SellerNetSheetPage() {
                 <p className="mt-2 text-3xl font-semibold text-white">{formatMoney(netProceeds)}</p>
               </div>
             </div>
+            <SaveDealPanel dealType="seller_net_sheet" inputs={saveInputs} results={saveResults} />
           </section>
         </div>
       </div>

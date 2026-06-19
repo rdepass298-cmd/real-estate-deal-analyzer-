@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import SaveDealPanel from '@/app/components/SaveDealPanel';
 
 const formatMoney = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value || 0);
@@ -20,6 +21,19 @@ export default function FixAndFlipPage() {
   const netProfit = arv - purchasePrice - rehabBudget - holdingCosts - sellingCosts;
   const roi = totalInvestment ? (netProfit / totalInvestment) * 100 : 0;
   const meetsRule = purchasePrice + rehabBudget <= arv * 0.7;
+  const saveInputs = {
+    purchasePrice,
+    rehabBudget,
+    holdingCosts,
+    sellingCostPercent,
+    arv,
+  };
+  const saveResults = {
+    totalInvestment,
+    netProfit,
+    roi,
+    meetsRule,
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -77,6 +91,7 @@ export default function FixAndFlipPage() {
                 <p className="mt-2 text-3xl font-semibold text-white">{meetsRule ? 'Pass' : 'Fail'}</p>
               </div>
             </div>
+            <SaveDealPanel dealType="fix_and_flip" inputs={saveInputs} results={saveResults} />
           </section>
         </div>
       </div>

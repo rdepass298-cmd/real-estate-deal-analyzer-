@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import SaveDealPanel from '@/app/components/SaveDealPanel';
 
 const formatMoney = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value || 0);
@@ -49,6 +50,24 @@ export default function RentalAnalysisPage() {
   const cashInvested = purchasePrice * (downPercent / 100);
   const cashOnCash = cashInvested ? (annualCashFlow / cashInvested) * 100 : 0;
   const onePercentRule = monthlyRent >= purchasePrice * 0.01;
+  const saveInputs = {
+    purchasePrice,
+    downPercent,
+    interestRate,
+    termYears,
+    monthlyRent,
+    propertyTax,
+    insurance,
+    vacancyPercent,
+    maintenancePercent,
+    managementPercent,
+  };
+  const saveResults = {
+    monthlyCashFlow,
+    capRate,
+    cashOnCash,
+    onePercentRule,
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -111,6 +130,7 @@ export default function RentalAnalysisPage() {
                 <p className="mt-2 text-3xl font-semibold text-white">{onePercentRule ? 'Pass' : 'Fail'}</p>
               </div>
             </div>
+            <SaveDealPanel dealType="rental" inputs={saveInputs} results={saveResults} />
           </section>
         </div>
       </div>
