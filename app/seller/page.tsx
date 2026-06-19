@@ -27,6 +27,7 @@ export default function SellerNetSheetPage() {
     commissionAmount,
     netProceeds,
   };
+  const professionalSheetHref = `/seller/professional-sheet?salePrice=${encodeURIComponent(String(salePrice))}&mortgagePayoff=${encodeURIComponent(String(mortgagePayoff))}&commissionPercent=${encodeURIComponent(String(commissionPercent))}&closingCosts=${encodeURIComponent(String(closingCosts))}&sellerConcessions=${encodeURIComponent(String(sellerConcessions))}`;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -76,6 +77,13 @@ export default function SellerNetSheetPage() {
                 <p className="mt-2 text-3xl font-semibold text-white">{formatMoney(netProceeds)}</p>
               </div>
             </div>
+            <Link
+              href={professionalSheetHref}
+              target="_blank"
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
+            >
+              Generate Professional Sheet
+            </Link>
             <SaveDealPanel dealType="seller_net_sheet" inputs={saveInputs} results={saveResults} />
           </section>
         </div>
