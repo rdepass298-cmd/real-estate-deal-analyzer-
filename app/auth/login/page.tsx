@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { ensureProfile } from '@/lib/ensureProfile';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -40,6 +41,13 @@ export default function LoginPage() {
         setError(signInError.message);
         setLoading(false);
         return;
+      }
+
+      if (data.user?.id && data.user.email) {
+        await ensureProfile({
+          id: data.user.id,
+          email: data.user.email,
+        });
       }
 
       setSuccess('Logged in successfully! Redirecting...');

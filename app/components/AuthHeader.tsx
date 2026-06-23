@@ -57,6 +57,9 @@ export default function AuthHeader() {
                 <Link href="/deals" className="text-sm font-medium text-cyan-300 transition hover:text-cyan-200">
                   My Deals
                 </Link>
+                <Link href="/upgrade" className="text-sm font-medium text-cyan-300 transition hover:text-cyan-200">
+                  Upgrade
+                </Link>
                 <span className="text-sm text-slate-300">{user.email}</span>
                 <button
                   onClick={handleLogout}

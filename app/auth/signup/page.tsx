@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { ensureProfile } from '@/lib/ensureProfile';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -51,6 +52,13 @@ export default function SignUpPage() {
         setError(signUpError.message);
         setLoading(false);
         return;
+      }
+
+      if (data.user?.id && data.user.email) {
+        await ensureProfile({
+          id: data.user.id,
+          email: data.user.email,
+        });
       }
 
       setSuccess('Account created successfully! Redirecting...');
