@@ -1,11 +1,23 @@
-'use client';
-
 import Link from 'next/link';
-import { useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { redirect } from 'next/navigation';
+import PrintButton from '@/app/components/PrintButton';
+import { getPaidStatusFromServerCookies } from '@/lib/server/authz';
 
-const parseNumber = (value: string | null, fallback = 0) => {
-  const parsed = Number(value);
+type PageProps = {
+  searchParams: Record<string, string | string[] | undefined>;
+};
+
+const getParam = (searchParams: Record<string, string | string[] | undefined>, key: string) => {
+  const value = searchParams[key];
+  return Array.isArray(value) ? value[0] : value;
+};
+
+const parseNumber = (
+  searchParams: Record<string, string | string[] | undefined>,
+  key: string,
+  fallback = 0
+) => {
+  const parsed = Number(getParam(searchParams, key));
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
@@ -19,29 +31,33 @@ const formatMoney = (value: number) =>
 const formatPercent = (value: number) => `${value.toFixed(2)}%`;
 const formatRule = (value: number) => (value >= 0.5 ? 'Pass' : 'Fail');
 
-export default function FlipProfessionalSheetPage() {
-  const searchParams = useSearchParams();
+export default async function FlipProfessionalSheetPage({ searchParams }: PageProps) {
+  const paidStatus = await getPaidStatusFromServerCookies();
 
-  const purchasePrice = parseNumber(searchParams.get('purchasePrice'), 200000);
-  const rehabBudget = parseNumber(searchParams.get('rehabBudget'), 50000);
-  const holdingCosts = parseNumber(searchParams.get('holdingCosts'), 12000);
-  const sellingCostPercent = parseNumber(searchParams.get('sellingCostPercent'), 8);
-  const arv = parseNumber(searchParams.get('arv'), 325000);
+  if (!paidStatus.isAuthenticated) {
+    redirect('/auth/login');
+  }
 
-  const totalInvestment = parseNumber(searchParams.get('totalInvestment'), 0);
-  const netProfit = parseNumber(searchParams.get('netProfit'), 0);
-  const roi = parseNumber(searchParams.get('roi'), 0);
-  const meetsRule = parseNumber(searchParams.get('meetsRule'), 0);
+  if (!paidStatus.isPaid) {
+    redirect('/upgrade');
+  }
 
-  const today = useMemo(
-    () =>
-      new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-    [],
-  );
+  const purchasePrice = parseNumber(searchParams, 'purchasePrice', 200000);
+  const rehabBudget = parseNumber(searchParams, 'rehabBudget', 50000);
+  const holdingCosts = parseNumber(searchParams, 'holdingCosts', 12000);
+  const sellingCostPercent = parseNumber(searchParams, 'sellingCostPercent', 8);
+  const arv = parseNumber(searchParams, 'arv', 325000);
+
+  const totalInvestment = parseNumber(searchParams, 'totalInvestment', 0);
+  const netProfit = parseNumber(searchParams, 'netProfit', 0);
+  const roi = parseNumber(searchParams, 'roi', 0);
+  const meetsRule = parseNumber(searchParams, 'meetsRule', 0);
+
+  const today = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100 sm:px-10">
@@ -53,19 +69,14 @@ export default function FlipProfessionalSheetPage() {
           >
             Back to Fix & Flip Calculator
           </Link>
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 text-sm font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
-          >
-            Print / Save as PDF
-          </button>
+          <PrintButton />
         </div>
 
         <article className="print-sheet rounded-3xl border border-slate-800 bg-white p-8 text-slate-900 shadow-2xl shadow-slate-950/20 sm:p-12">
           <header className="border-b border-slate-300 pb-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-slate-600">RealEstate Deal Analyzer</p>
+                <p className="text-sm uppercase tracking-[0.2em] text-slate-600">Real Estate Analyzer</p>
                 <h1 className="mt-2 text-3xl font-semibold text-slate-900">Fix & Flip Analysis</h1>
               </div>
               <p className="text-sm text-slate-600">Date: {today}</p>
@@ -108,7 +119,7 @@ export default function FlipProfessionalSheetPage() {
           </section>
 
           <footer className="mt-10 border-t border-slate-300 pt-4 text-sm text-slate-600">
-            Prepared by RealEstate Deal Analyzer
+            Prepared by Real Estate Analyzer
           </footer>
         </article>
       </div>

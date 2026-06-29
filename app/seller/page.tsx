@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import BackToCalculatorsButton from '@/app/components/BackToCalculatorsButton';
+import ProActionButton from '@/app/components/ProActionButton';
 import SaveDealPanel from '@/app/components/SaveDealPanel';
 
 const formatMoney = (value: number) =>
@@ -37,9 +38,7 @@ export default function SellerNetSheetPage() {
             <p className="text-sm uppercase tracking-[0.35em] text-cyan-300">Calculator</p>
             <h1 className="mt-3 text-4xl font-semibold">Seller Net Sheet</h1>
           </div>
-          <Link href="/" className="inline-flex items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-5 py-3 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
-            Back to home
-          </Link>
+          <BackToCalculatorsButton />
         </div>
 
         <div className="mt-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
@@ -77,13 +76,7 @@ export default function SellerNetSheetPage() {
                 <p className="mt-2 text-3xl font-semibold text-white">{formatMoney(netProceeds)}</p>
               </div>
             </div>
-            <Link
-              href={professionalSheetHref}
-              target="_blank"
-              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
-            >
-              Generate Professional Sheet
-            </Link>
+            <ProActionButton href={professionalSheetHref} buttonText="Generate Professional Sheet" />
             <SaveDealPanel dealType="seller_net_sheet" inputs={saveInputs} results={saveResults} />
           </section>
         </div>

@@ -23,6 +23,16 @@ body {
   box-sizing: border-box;
 }
 
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 ::selection {
   background-color: rgba(34, 211, 238, 0.35);
 }

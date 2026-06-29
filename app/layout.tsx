@@ -3,7 +3,7 @@ import AuthHeader from './components/AuthHeader';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'RealEstate Deal Analyzer',
+  title: 'Real Estate Analyzer',
   description: 'A modern real estate analysis landing page.',
 };
 

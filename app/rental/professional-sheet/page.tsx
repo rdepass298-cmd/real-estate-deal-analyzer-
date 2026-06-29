@@ -1,11 +1,23 @@
-'use client';
-
 import Link from 'next/link';
-import { useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { redirect } from 'next/navigation';
+import PrintButton from '@/app/components/PrintButton';
+import { getPaidStatusFromServerCookies } from '@/lib/server/authz';
 
-const parseNumber = (value: string | null, fallback = 0) => {
-  const parsed = Number(value);
+type PageProps = {
+  searchParams: Record<string, string | string[] | undefined>;
+};
+
+const getParam = (searchParams: Record<string, string | string[] | undefined>, key: string) => {
+  const value = searchParams[key];
+  return Array.isArray(value) ? value[0] : value;
+};
+
+const parseNumber = (
+  searchParams: Record<string, string | string[] | undefined>,
+  key: string,
+  fallback = 0
+) => {
+  const parsed = Number(getParam(searchParams, key));
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
@@ -20,34 +32,38 @@ const formatPercent = (value: number) => `${value.toFixed(2)}%`;
 
 const formatRule = (value: number) => (value >= 0.5 ? 'Pass' : 'Fail');
 
-export default function RentalProfessionalSheetPage() {
-  const searchParams = useSearchParams();
+export default async function RentalProfessionalSheetPage({ searchParams }: PageProps) {
+  const paidStatus = await getPaidStatusFromServerCookies();
 
-  const purchasePrice = parseNumber(searchParams.get('purchasePrice'), 300000);
-  const downPercent = parseNumber(searchParams.get('downPercent'), 20);
-  const interestRate = parseNumber(searchParams.get('interestRate'), 4.5);
-  const termYears = parseNumber(searchParams.get('termYears'), 30);
-  const monthlyRent = parseNumber(searchParams.get('monthlyRent'), 2500);
-  const propertyTax = parseNumber(searchParams.get('propertyTax'), 3600);
-  const insurance = parseNumber(searchParams.get('insurance'), 1200);
-  const vacancyPercent = parseNumber(searchParams.get('vacancyPercent'), 5);
-  const maintenancePercent = parseNumber(searchParams.get('maintenancePercent'), 10);
-  const managementPercent = parseNumber(searchParams.get('managementPercent'), 8);
+  if (!paidStatus.isAuthenticated) {
+    redirect('/auth/login');
+  }
 
-  const monthlyCashFlow = parseNumber(searchParams.get('monthlyCashFlow'), 0);
-  const capRate = parseNumber(searchParams.get('capRate'), 0);
-  const cashOnCash = parseNumber(searchParams.get('cashOnCash'), 0);
-  const onePercentRule = parseNumber(searchParams.get('onePercentRule'), 0);
+  if (!paidStatus.isPaid) {
+    redirect('/upgrade');
+  }
 
-  const today = useMemo(
-    () =>
-      new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-    [],
-  );
+  const purchasePrice = parseNumber(searchParams, 'purchasePrice', 300000);
+  const downPercent = parseNumber(searchParams, 'downPercent', 20);
+  const interestRate = parseNumber(searchParams, 'interestRate', 4.5);
+  const termYears = parseNumber(searchParams, 'termYears', 30);
+  const monthlyRent = parseNumber(searchParams, 'monthlyRent', 2500);
+  const propertyTax = parseNumber(searchParams, 'propertyTax', 3600);
+  const insurance = parseNumber(searchParams, 'insurance', 1200);
+  const vacancyPercent = parseNumber(searchParams, 'vacancyPercent', 5);
+  const maintenancePercent = parseNumber(searchParams, 'maintenancePercent', 10);
+  const managementPercent = parseNumber(searchParams, 'managementPercent', 8);
+
+  const monthlyCashFlow = parseNumber(searchParams, 'monthlyCashFlow', 0);
+  const capRate = parseNumber(searchParams, 'capRate', 0);
+  const cashOnCash = parseNumber(searchParams, 'cashOnCash', 0);
+  const onePercentRule = parseNumber(searchParams, 'onePercentRule', 0);
+
+  const today = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100 sm:px-10">
@@ -59,19 +75,14 @@ export default function RentalProfessionalSheetPage() {
           >
             Back to Rental Calculator
           </Link>
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 text-sm font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
-          >
-            Print / Save as PDF
-          </button>
+          <PrintButton />
         </div>
 
         <article className="print-sheet rounded-3xl border border-slate-800 bg-white p-8 text-slate-900 shadow-2xl shadow-slate-950/20 sm:p-12">
           <header className="border-b border-slate-300 pb-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-slate-600">RealEstate Deal Analyzer</p>
+                <p className="text-sm uppercase tracking-[0.2em] text-slate-600">Real Estate Analyzer</p>
                 <h1 className="mt-2 text-3xl font-semibold text-slate-900">Rental Analysis</h1>
               </div>
               <p className="text-sm text-slate-600">Date: {today}</p>
@@ -119,7 +130,7 @@ export default function RentalProfessionalSheetPage() {
           </section>
 
           <footer className="mt-10 border-t border-slate-300 pt-4 text-sm text-slate-600">
-            Prepared by RealEstate Deal Analyzer
+            Prepared by Real Estate Analyzer
           </footer>
         </article>
       </div>

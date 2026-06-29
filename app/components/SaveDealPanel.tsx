@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -15,6 +16,8 @@ export default function SaveDealPanel({ dealType, inputs, results }: SaveDealPan
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+  const [actionLink, setActionLink] = useState<'login' | 'upgrade' | null>(null);
+  const [showUpgradeLink, setShowUpgradeLink] = useState(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -36,6 +39,8 @@ export default function SaveDealPanel({ dealType, inputs, results }: SaveDealPan
   const handleSave = async () => {
     setMessage('');
     setMessageType('');
+    setShowUpgradeLink(false);
+    setActionLink(null);
     setIsSaving(true);
 
     const { data: sessionData } = await supabase.auth.getSession();
@@ -44,21 +49,37 @@ export default function SaveDealPanel({ dealType, inputs, results }: SaveDealPan
     if (!user) {
       setMessage('Please log in to save deals.');
       setMessageType('error');
+      setActionLink('login');
       setIsSaving(false);
       return;
     }
 
-    const { error } = await supabase.from('deals').insert({
-      user_id: user.id,
-      deal_type: dealType,
-      name: dealName.trim() || `${dealType} deal`,
-      inputs,
-      results,
+    const response = await fetch('/api/deals/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+      body: JSON.stringify({
+        dealType,
+        name: dealName.trim(),
+        inputs,
+        results,
+      }),
     });
 
-    if (error) {
-      setMessage(error.message);
+    const data = (await response.json()) as {
+      error?: string;
+      code?: string;
+      upgradeUrl?: string;
+    };
+
+    if (!response.ok) {
+      setMessage(data.error || 'Unable to save deal.');
       setMessageType('error');
+      const needsUpgrade = data.code === 'PRO_REQUIRED' || data.upgradeUrl === '/upgrade';
+      setShowUpgradeLink(needsUpgrade);
+      setActionLink(needsUpgrade ? 'upgrade' : null);
       setIsSaving(false);
       return;
     }
@@ -80,26 +101,17 @@ export default function SaveDealPanel({ dealType, inputs, results }: SaveDealPan
           onChange={(event) => setDealName(event.target.value)}
           placeholder="My favorite rental"
           className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/20"
-          disabled={!isLoggedIn || isSaving}
+          disabled={isSaving}
         />
       </label>
 
-      {isLoggedIn ? (
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50"
-        >
-          {isSaving ? 'Saving...' : 'Save Deal'}
-        </button>
-      ) : (
-        <button
-          disabled
-          className="w-full cursor-not-allowed rounded-2xl border border-slate-700 bg-slate-800 px-6 py-3 font-semibold text-slate-400"
-        >
-          Log in to save deals
-        </button>
-      )}
+      <button
+        onClick={handleSave}
+        disabled={isSaving}
+        className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50"
+      >
+        {isSaving ? 'Saving...' : 'Save Deal'}
+      </button>
 
       {message ? (
         <p
@@ -109,7 +121,17 @@ export default function SaveDealPanel({ dealType, inputs, results }: SaveDealPan
               : 'border-red-500/40 bg-red-500/10 text-red-200'
           }`}
         >
-          {message}
+          {message}{' '}
+          {actionLink === 'login' ? (
+            <Link href="/auth/login" className="font-semibold text-cyan-300 underline hover:text-cyan-200">
+              Log in
+            </Link>
+          ) : null}
+          {showUpgradeLink ? (
+            <Link href="/upgrade" className="font-semibold text-cyan-300 underline hover:text-cyan-200">
+              Upgrade to Pro
+            </Link>
+          ) : null}
         </p>
       ) : null}
     </section>

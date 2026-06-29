@@ -1,11 +1,23 @@
-'use client';
-
-import { useMemo } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { redirect } from 'next/navigation';
+import PrintButton from '@/app/components/PrintButton';
+import { getPaidStatusFromServerCookies } from '@/lib/server/authz';
 
-const parseNumber = (value: string | null, fallback = 0) => {
-  const parsed = Number(value);
+type PageProps = {
+  searchParams: Record<string, string | string[] | undefined>;
+};
+
+const getParam = (searchParams: Record<string, string | string[] | undefined>, key: string) => {
+  const value = searchParams[key];
+  return Array.isArray(value) ? value[0] : value;
+};
+
+const parseNumber = (
+  searchParams: Record<string, string | string[] | undefined>,
+  key: string,
+  fallback = 0
+) => {
+  const parsed = Number(getParam(searchParams, key));
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
@@ -18,20 +30,25 @@ const formatMoney = (value: number) =>
 
 const formatPercent = (value: number) => `${value.toFixed(2)}%`;
 
-export default function SellerProfessionalSheetPage() {
-  const searchParams = useSearchParams();
+export default async function SellerProfessionalSheetPage({ searchParams }: PageProps) {
+  const paidStatus = await getPaidStatusFromServerCookies();
 
-  const salePrice = parseNumber(searchParams.get('salePrice'), 400000);
-  const mortgagePayoff = parseNumber(searchParams.get('mortgagePayoff'), 180000);
-  const commissionPercent = parseNumber(searchParams.get('commissionPercent'), 6);
-  const closingCosts = parseNumber(searchParams.get('closingCosts'), 10000);
-  const sellerConcessions = parseNumber(searchParams.get('sellerConcessions'), 5000);
+  if (!paidStatus.isAuthenticated) {
+    redirect('/auth/login');
+  }
 
-  const commissionAmount = useMemo(() => (commissionPercent / 100) * salePrice, [commissionPercent, salePrice]);
-  const netProceeds = useMemo(
-    () => salePrice - mortgagePayoff - commissionAmount - closingCosts - sellerConcessions,
-    [salePrice, mortgagePayoff, commissionAmount, closingCosts, sellerConcessions],
-  );
+  if (!paidStatus.isPaid) {
+    redirect('/upgrade');
+  }
+
+  const salePrice = parseNumber(searchParams, 'salePrice', 400000);
+  const mortgagePayoff = parseNumber(searchParams, 'mortgagePayoff', 180000);
+  const commissionPercent = parseNumber(searchParams, 'commissionPercent', 6);
+  const closingCosts = parseNumber(searchParams, 'closingCosts', 10000);
+  const sellerConcessions = parseNumber(searchParams, 'sellerConcessions', 5000);
+
+  const commissionAmount = (commissionPercent / 100) * salePrice;
+  const netProceeds = salePrice - mortgagePayoff - commissionAmount - closingCosts - sellerConcessions;
 
   const today = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
@@ -49,19 +66,14 @@ export default function SellerProfessionalSheetPage() {
           >
             Back to Seller Calculator
           </Link>
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 text-sm font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
-          >
-            Print / Save as PDF
-          </button>
+          <PrintButton />
         </div>
 
         <article className="print-sheet rounded-3xl border border-slate-800 bg-white p-8 text-slate-900 shadow-2xl shadow-slate-950/20 sm:p-12">
           <header className="border-b border-slate-300 pb-6">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-slate-600">RealEstate Deal Analyzer</p>
+                <p className="text-sm uppercase tracking-[0.2em] text-slate-600">Real Estate Analyzer</p>
                 <h1 className="mt-2 text-3xl font-semibold text-slate-900">Seller Net Sheet</h1>
               </div>
               <p className="text-sm text-slate-600">Date: {today}</p>
@@ -111,7 +123,7 @@ export default function SellerProfessionalSheetPage() {
           </section>
 
           <footer className="mt-10 border-t border-slate-300 pt-4 text-sm text-slate-600">
-            Prepared by RealEstate Deal Analyzer
+            Prepared by Real Estate Analyzer
           </footer>
         </article>
       </div>

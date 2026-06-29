@@ -41,8 +41,8 @@ const summarizeResults = (deal: Deal) => {
     return `Net proceeds ${formatMoney(r.netProceeds)}`;
   }
 
-  if (deal.deal_type === 'buyer_affordability') {
-    return `Max home ${formatMoney(r.maxHomePrice)} | Payment ${formatMoney(r.estimatedMortgagePayment)}`;
+  if (deal.deal_type === 'builder_roi') {
+    return `Net profit ${formatMoney(r.netProfit)} | ROI ${Number(r.roi ?? 0).toFixed(2)}%`;
   }
 
   return 'Saved deal';

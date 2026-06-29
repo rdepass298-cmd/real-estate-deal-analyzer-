@@ -1,24 +1,62 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 export default function AuthHeader() {
+  const router = useRouter();
   const [user, setUser] = useState<{ email: string } | null>(null);
+  const [plan, setPlan] = useState<'free' | 'pro' | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadPlan = async () => {
+      try {
+        const response = await fetch('/api/pro/status', {
+          method: 'GET',
+          credentials: 'same-origin',
+        });
+
+        const data = (await response.json()) as { isPaid?: boolean; isAuthenticated?: boolean };
+
+        if (!response.ok || !data.isAuthenticated) {
+          setPlan(null);
+          return;
+        }
+
+        setPlan(data.isPaid ? 'pro' : 'free');
+      } catch {
+        setPlan(null);
+      }
+    };
+
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user ? { email: data.session.user.email || '' } : null);
+      const sessionUser = data.session?.user;
+
+      setUser(sessionUser ? { email: sessionUser.email || '' } : null);
+
+      if (data.session?.user) {
+        await loadPlan();
+      } else {
+        setPlan(null);
+      }
+
       setLoading(false);
     };
 
     checkAuth();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ? { email: session.user.email || '' } : null);
+
+      if (session?.user) {
+        await loadPlan();
+      } else {
+        setPlan(null);
+      }
     });
 
     return () => {
@@ -29,6 +67,9 @@ export default function AuthHeader() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setPlan(null);
+    router.push('/');
+    router.refresh();
   };
 
   if (loading) {
@@ -48,18 +89,28 @@ export default function AuthHeader() {
       <div className="mx-auto max-w-6xl px-6 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-lg font-semibold text-cyan-300 transition hover:text-cyan-200">
-            RealEstate Deal Analyzer
+            Real Estate Analyzer
           </Link>
 
           <div className="flex items-center gap-4">
             {user ? (
               <>
-                <Link href="/deals" className="text-sm font-medium text-cyan-300 transition hover:text-cyan-200">
-                  My Deals
-                </Link>
-                <Link href="/upgrade" className="text-sm font-medium text-cyan-300 transition hover:text-cyan-200">
-                  Upgrade
-                </Link>
+                {plan ? (
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
+                      plan === 'pro'
+                        ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-200'
+                        : 'border border-amber-500/30 bg-amber-500/10 text-amber-200'
+                    }`}
+                  >
+                    {plan}
+                  </span>
+                ) : null}
+                {plan === 'free' ? (
+                  <Link href="/upgrade" className="text-sm font-medium text-cyan-300 transition hover:text-cyan-200">
+                    Upgrade
+                  </Link>
+                ) : null}
                 <span className="text-sm text-slate-300">{user.email}</span>
                 <button
                   onClick={handleLogout}

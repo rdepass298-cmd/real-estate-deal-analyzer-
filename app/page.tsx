@@ -1,42 +1,72 @@
 import Link from 'next/link';
-import type { Metadata } from 'next';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = {
-  title: 'RealEstate Deal Analyzer',
-  description: 'Analyze rental, fix and flip, seller net sheet, and buyer affordability scenarios.',
-};
+export default async function Home() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const cards = [
-  { title: 'Rental Analysis', description: 'Estimate rental income, expenses, and cash flow.', href: '/rental' },
-  { title: 'Fix and Flip', description: 'Evaluate renovation costs, resale value, and profit potential.', href: '/flip' },
-  { title: 'Seller Net Sheet', description: 'Calculate seller proceeds after closing costs and commissions.', href: '/seller' },
-  { title: 'Buyer Affordability', description: 'Assess how much home a buyer can afford based on income and debt.', href: '/buyer' },
-];
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables.');
+  }
 
-export default function Home() {
+  const cookieStore = cookies();
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Server components may not be able to set cookies.
+        }
+      },
+    },
+  });
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session?.user) {
+    redirect('/calculators');
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
-      <div className="mx-auto max-w-6xl">
-        <section className="mb-12 text-center">
-          <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Real estate tools</p>
-          <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">RealEstate Deal Analyzer</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-slate-300 sm:text-lg">
-            Explore rental, flip, seller, and buyer scenarios with fast, modern calculation tools tailored for investors.
-          </p>
-        </section>
+      <div className="mx-auto flex min-h-[80vh] max-w-3xl flex-col items-center justify-center text-center">
+        <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Real estate tools</p>
+        <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">Real Estate Analyzer</h1>
+        <p className="mt-4 max-w-xl text-slate-300 sm:text-lg">
+          Analyze rental, fix and flip, seller net sheet, and builder ROI/new construction scenarios with fast, modern
+          calculation tools tailored for investors.
+        </p>
 
-        <section className="grid gap-6 sm:grid-cols-2">
-          {cards.map((card) => (
-            <Link
-              key={card.title}
-              href={card.href}
-              className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-xl shadow-slate-950/20 transition hover:-translate-y-1 hover:border-cyan-400/40 hover:bg-slate-900"
-            >
-              <h2 className="text-2xl font-semibold text-white">{card.title}</h2>
-              <p className="mt-3 text-slate-300">{card.description}</p>
-            </Link>
-          ))}
-        </section>
+        <div className="mt-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+          <Link
+            href="/auth/login"
+            className="inline-flex items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-6 py-3 font-semibold text-cyan-200 transition hover:bg-cyan-500/20"
+          >
+            Log In
+          </Link>
+          <Link
+            href="/auth/signup"
+            className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 font-semibold text-white transition hover:from-cyan-600 hover:to-blue-600"
+          >
+            Sign Up
+          </Link>
+          <Link
+            href="/calculators"
+            className="inline-flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/80 px-6 py-3 font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-900"
+          >
+            Use the Free Version
+          </Link>
+        </div>
       </div>
     </main>
   );
