@@ -43,7 +43,7 @@ export default async function Home() {
         <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Real estate tools</p>
         <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">Real Estate Analyzer</h1>
         <p className="mt-4 max-w-xl text-slate-300 sm:text-lg">
-          Analyze rental, fix and flip, seller net sheet, and builder ROI/new construction scenarios with fast, modern
+          Analyze rental, fix and flip, seller net sheet, builder ROI/new construction, and buyer affordability scenarios with fast, modern
           calculation tools tailored for investors.
         </p>
 

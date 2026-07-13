@@ -9,26 +9,32 @@ const formatMoney = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value || 0);
 
 export default function SellerNetSheetPage() {
-  const [salePrice, setSalePrice] = useState(400000);
-  const [mortgagePayoff, setMortgagePayoff] = useState(180000);
-  const [commissionPercent, setCommissionPercent] = useState(6);
-  const [closingCosts, setClosingCosts] = useState(10000);
-  const [sellerConcessions, setSellerConcessions] = useState(5000);
+  const [salePriceInput, setSalePrice] = useState('400000');
+  const [mortgagePayoffInput, setMortgagePayoff] = useState('180000');
+  const [commissionPercentInput, setCommissionPercent] = useState('6');
+  const [closingCostsInput, setClosingCosts] = useState('10000');
+  const [sellerConcessionsInput, setSellerConcessions] = useState('5000');
+
+  const salePrice = parseFloat(salePriceInput) || 0;
+  const mortgagePayoff = parseFloat(mortgagePayoffInput) || 0;
+  const commissionPercent = parseFloat(commissionPercentInput) || 0;
+  const closingCosts = parseFloat(closingCostsInput) || 0;
+  const sellerConcessions = parseFloat(sellerConcessionsInput) || 0;
 
   const commissionAmount = useMemo(() => (commissionPercent / 100) * salePrice, [commissionPercent, salePrice]);
   const netProceeds = salePrice - mortgagePayoff - commissionAmount - closingCosts - sellerConcessions;
   const saveInputs = {
-    salePrice,
-    mortgagePayoff,
-    commissionPercent,
-    closingCosts,
-    sellerConcessions,
+    salePrice: salePriceInput,
+    mortgagePayoff: mortgagePayoffInput,
+    commissionPercent: commissionPercentInput,
+    closingCosts: closingCostsInput,
+    sellerConcessions: sellerConcessionsInput,
   };
   const saveResults = {
     commissionAmount,
     netProceeds,
   };
-  const professionalSheetHref = `/seller/professional-sheet?salePrice=${encodeURIComponent(String(salePrice))}&mortgagePayoff=${encodeURIComponent(String(mortgagePayoff))}&commissionPercent=${encodeURIComponent(String(commissionPercent))}&closingCosts=${encodeURIComponent(String(closingCosts))}&sellerConcessions=${encodeURIComponent(String(sellerConcessions))}`;
+  const professionalSheetHref = `/seller/professional-sheet?salePrice=${encodeURIComponent(salePriceInput)}&mortgagePayoff=${encodeURIComponent(mortgagePayoffInput)}&commissionPercent=${encodeURIComponent(commissionPercentInput)}&closingCosts=${encodeURIComponent(closingCostsInput)}&sellerConcessions=${encodeURIComponent(sellerConcessionsInput)}`;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -45,18 +51,19 @@ export default function SellerNetSheetPage() {
           <section className="space-y-6 rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
             <div className="grid gap-4 sm:grid-cols-2">
               {[
-                { label: 'Sale Price', value: salePrice, setter: setSalePrice },
-                { label: 'Mortgage Payoff', value: mortgagePayoff, setter: setMortgagePayoff },
-                { label: 'Agent Commission %', value: commissionPercent, setter: setCommissionPercent },
-                { label: 'Closing Costs', value: closingCosts, setter: setClosingCosts },
-                { label: 'Seller Concessions', value: sellerConcessions, setter: setSellerConcessions },
+                { label: 'Sale Price', value: salePriceInput, setter: setSalePrice },
+                { label: 'Mortgage Payoff', value: mortgagePayoffInput, setter: setMortgagePayoff },
+                { label: 'Agent Commission %', value: commissionPercentInput, setter: setCommissionPercent },
+                { label: 'Closing Costs', value: closingCostsInput, setter: setClosingCosts },
+                { label: 'Seller Concessions', value: sellerConcessionsInput, setter: setSellerConcessions },
               ].map((field) => (
                 <label key={field.label} className="space-y-2 text-sm text-slate-300">
                   <span className="font-medium text-slate-100">{field.label}</span>
                   <input
                     type="number"
                     value={field.value}
-                    onChange={(event) => field.setter(Number(event.target.value))}
+                    onChange={(event) => field.setter(event.target.value)}
+                    placeholder="0"
                     className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/20"
                   />
                 </label>

@@ -27,16 +27,27 @@ const calculateMortgage = (loan: number, annualRate: number, years: number) => {
 };
 
 export default function RentalAnalysisPage() {
-  const [purchasePrice, setPurchasePrice] = useState(300000);
-  const [downPercent, setDownPercent] = useState(20);
-  const [interestRate, setInterestRate] = useState(4.5);
-  const [termYears, setTermYears] = useState(30);
-  const [monthlyRent, setMonthlyRent] = useState(2500);
-  const [propertyTax, setPropertyTax] = useState(3600);
-  const [insurance, setInsurance] = useState(1200);
-  const [vacancyPercent, setVacancyPercent] = useState(5);
-  const [maintenancePercent, setMaintenancePercent] = useState(10);
-  const [managementPercent, setManagementPercent] = useState(8);
+  const [purchasePriceInput, setPurchasePrice] = useState('300000');
+  const [downPercentInput, setDownPercent] = useState('20');
+  const [interestRateInput, setInterestRate] = useState('4.5');
+  const [termYearsInput, setTermYears] = useState('30');
+  const [monthlyRentInput, setMonthlyRent] = useState('2500');
+  const [propertyTaxInput, setPropertyTax] = useState('3600');
+  const [insuranceInput, setInsurance] = useState('1200');
+  const [vacancyPercentInput, setVacancyPercent] = useState('5');
+  const [maintenancePercentInput, setMaintenancePercent] = useState('10');
+  const [managementPercentInput, setManagementPercent] = useState('8');
+
+  const purchasePrice = parseFloat(purchasePriceInput) || 0;
+  const downPercent = parseFloat(downPercentInput) || 0;
+  const interestRate = parseFloat(interestRateInput) || 0;
+  const termYears = parseFloat(termYearsInput) || 0;
+  const monthlyRent = parseFloat(monthlyRentInput) || 0;
+  const propertyTax = parseFloat(propertyTaxInput) || 0;
+  const insurance = parseFloat(insuranceInput) || 0;
+  const vacancyPercent = parseFloat(vacancyPercentInput) || 0;
+  const maintenancePercent = parseFloat(maintenancePercentInput) || 0;
+  const managementPercent = parseFloat(managementPercentInput) || 0;
 
   const loanAmount = useMemo(() => purchasePrice * (1 - downPercent / 100), [purchasePrice, downPercent]);
   const monthlyMortgage = useMemo(() => calculateMortgage(loanAmount, interestRate, termYears), [loanAmount, interestRate, termYears]);
@@ -52,16 +63,16 @@ export default function RentalAnalysisPage() {
   const cashOnCash = cashInvested ? (annualCashFlow / cashInvested) * 100 : 0;
   const onePercentRule = monthlyRent >= purchasePrice * 0.01;
   const saveInputs = {
-    purchasePrice,
-    downPercent,
-    interestRate,
-    termYears,
-    monthlyRent,
-    propertyTax,
-    insurance,
-    vacancyPercent,
-    maintenancePercent,
-    managementPercent,
+    purchasePrice: purchasePriceInput,
+    downPercent: downPercentInput,
+    interestRate: interestRateInput,
+    termYears: termYearsInput,
+    monthlyRent: monthlyRentInput,
+    propertyTax: propertyTaxInput,
+    insurance: insuranceInput,
+    vacancyPercent: vacancyPercentInput,
+    maintenancePercent: maintenancePercentInput,
+    managementPercent: managementPercentInput,
   };
   const saveResults = {
     monthlyCashFlow,
@@ -69,7 +80,7 @@ export default function RentalAnalysisPage() {
     cashOnCash,
     onePercentRule,
   };
-  const professionalSheetHref = `/rental/professional-sheet?purchasePrice=${encodeURIComponent(String(purchasePrice))}&downPercent=${encodeURIComponent(String(downPercent))}&interestRate=${encodeURIComponent(String(interestRate))}&termYears=${encodeURIComponent(String(termYears))}&monthlyRent=${encodeURIComponent(String(monthlyRent))}&propertyTax=${encodeURIComponent(String(propertyTax))}&insurance=${encodeURIComponent(String(insurance))}&vacancyPercent=${encodeURIComponent(String(vacancyPercent))}&maintenancePercent=${encodeURIComponent(String(maintenancePercent))}&managementPercent=${encodeURIComponent(String(managementPercent))}&monthlyCashFlow=${encodeURIComponent(String(monthlyCashFlow))}&capRate=${encodeURIComponent(String(capRate))}&cashOnCash=${encodeURIComponent(String(cashOnCash))}&onePercentRule=${encodeURIComponent(onePercentRule ? '1' : '0')}`;
+  const professionalSheetHref = `/rental/professional-sheet?purchasePrice=${encodeURIComponent(purchasePriceInput)}&downPercent=${encodeURIComponent(downPercentInput)}&interestRate=${encodeURIComponent(interestRateInput)}&termYears=${encodeURIComponent(termYearsInput)}&monthlyRent=${encodeURIComponent(monthlyRentInput)}&propertyTax=${encodeURIComponent(propertyTaxInput)}&insurance=${encodeURIComponent(insuranceInput)}&vacancyPercent=${encodeURIComponent(vacancyPercentInput)}&maintenancePercent=${encodeURIComponent(maintenancePercentInput)}&managementPercent=${encodeURIComponent(managementPercentInput)}&monthlyCashFlow=${encodeURIComponent(String(monthlyCashFlow))}&capRate=${encodeURIComponent(String(capRate))}&cashOnCash=${encodeURIComponent(String(cashOnCash))}&onePercentRule=${encodeURIComponent(onePercentRule ? '1' : '0')}`;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -86,23 +97,24 @@ export default function RentalAnalysisPage() {
           <section className="space-y-6 rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
             <div className="grid gap-4 sm:grid-cols-2">
               {[
-                { label: 'Purchase Price', value: purchasePrice, setter: setPurchasePrice },
-                { label: 'Down Payment %', value: downPercent, setter: setDownPercent },
-                { label: 'Loan Interest Rate %', value: interestRate, setter: setInterestRate },
-                { label: 'Loan Term (years)', value: termYears, setter: setTermYears },
-                { label: 'Monthly Rent', value: monthlyRent, setter: setMonthlyRent },
-                { label: 'Property Tax / year', value: propertyTax, setter: setPropertyTax },
-                { label: 'Insurance / year', value: insurance, setter: setInsurance },
-                { label: 'Vacancy %', value: vacancyPercent, setter: setVacancyPercent },
-                { label: 'Maintenance %', value: maintenancePercent, setter: setMaintenancePercent },
-                { label: 'Management %', value: managementPercent, setter: setManagementPercent },
+                { label: 'Purchase Price', value: purchasePriceInput, setter: setPurchasePrice },
+                { label: 'Down Payment %', value: downPercentInput, setter: setDownPercent },
+                { label: 'Loan Interest Rate %', value: interestRateInput, setter: setInterestRate },
+                { label: 'Loan Term (years)', value: termYearsInput, setter: setTermYears },
+                { label: 'Monthly Rent', value: monthlyRentInput, setter: setMonthlyRent },
+                { label: 'Property Tax / year', value: propertyTaxInput, setter: setPropertyTax },
+                { label: 'Insurance / year', value: insuranceInput, setter: setInsurance },
+                { label: 'Vacancy %', value: vacancyPercentInput, setter: setVacancyPercent },
+                { label: 'Maintenance %', value: maintenancePercentInput, setter: setMaintenancePercent },
+                { label: 'Management %', value: managementPercentInput, setter: setManagementPercent },
               ].map((field) => (
                 <label key={field.label} className="space-y-2 text-sm text-slate-300">
                   <span className="font-medium text-slate-100">{field.label}</span>
                   <input
                     type="number"
                     value={field.value}
-                    onChange={(event) => field.setter(Number(event.target.value))}
+                    onChange={(event) => field.setter(event.target.value)}
+                    placeholder="0"
                     className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/20"
                   />
                 </label>

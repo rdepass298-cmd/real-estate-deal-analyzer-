@@ -13,17 +13,29 @@ type BuildMode = 'spec' | 'custom';
 
 export default function BuilderRoiPage() {
   const [mode, setMode] = useState<BuildMode>('spec');
-  const [landCost, setLandCost] = useState(85000);
-  const [sitePrepUtilities, setSitePrepUtilities] = useState(40000);
-  const [hardCostPerSqFt, setHardCostPerSqFt] = useState(185);
-  const [squareFootage, setSquareFootage] = useState(2200);
-  const [softCosts, setSoftCosts] = useState(30000);
-  const [loanAmount, setLoanAmount] = useState(300000);
-  const [loanInterestRate, setLoanInterestRate] = useState(9);
-  const [buildDurationMonths, setBuildDurationMonths] = useState(10);
-  const [contingencyPercent, setContingencyPercent] = useState(10);
-  const [exitPrice, setExitPrice] = useState(620000);
-  const [sellingCostsPercent, setSellingCostsPercent] = useState(6);
+  const [landCostInput, setLandCost] = useState('85000');
+  const [sitePrepUtilitiesInput, setSitePrepUtilities] = useState('40000');
+  const [hardCostPerSqFtInput, setHardCostPerSqFt] = useState('185');
+  const [squareFootageInput, setSquareFootage] = useState('2200');
+  const [softCostsInput, setSoftCosts] = useState('30000');
+  const [loanAmountInput, setLoanAmount] = useState('300000');
+  const [loanInterestRateInput, setLoanInterestRate] = useState('9');
+  const [buildDurationMonthsInput, setBuildDurationMonths] = useState('10');
+  const [contingencyPercentInput, setContingencyPercent] = useState('10');
+  const [exitPriceInput, setExitPrice] = useState('620000');
+  const [sellingCostsPercentInput, setSellingCostsPercent] = useState('6');
+
+  const landCost = parseFloat(landCostInput) || 0;
+  const sitePrepUtilities = parseFloat(sitePrepUtilitiesInput) || 0;
+  const hardCostPerSqFt = parseFloat(hardCostPerSqFtInput) || 0;
+  const squareFootage = parseFloat(squareFootageInput) || 0;
+  const softCosts = parseFloat(softCostsInput) || 0;
+  const loanAmount = parseFloat(loanAmountInput) || 0;
+  const loanInterestRate = parseFloat(loanInterestRateInput) || 0;
+  const buildDurationMonths = parseFloat(buildDurationMonthsInput) || 0;
+  const contingencyPercent = parseFloat(contingencyPercentInput) || 0;
+  const exitPrice = parseFloat(exitPriceInput) || 0;
+  const sellingCostsPercent = parseFloat(sellingCostsPercentInput) || 0;
 
   const hardCosts = useMemo(() => hardCostPerSqFt * squareFootage, [hardCostPerSqFt, squareFootage]);
   const contingencyCost = useMemo(() => hardCosts * (contingencyPercent / 100), [hardCosts, contingencyPercent]);
@@ -44,17 +56,17 @@ export default function BuilderRoiPage() {
 
   const saveInputs = {
     mode,
-    landCost,
-    sitePrepUtilities,
-    hardCostPerSqFt,
-    squareFootage,
-    softCosts,
-    loanAmount,
-    loanInterestRate,
-    buildDurationMonths,
-    contingencyPercent,
-    exitPrice,
-    sellingCostsPercent,
+    landCost: landCostInput,
+    sitePrepUtilities: sitePrepUtilitiesInput,
+    hardCostPerSqFt: hardCostPerSqFtInput,
+    squareFootage: squareFootageInput,
+    softCosts: softCostsInput,
+    loanAmount: loanAmountInput,
+    loanInterestRate: loanInterestRateInput,
+    buildDurationMonths: buildDurationMonthsInput,
+    contingencyPercent: contingencyPercentInput,
+    exitPrice: exitPriceInput,
+    sellingCostsPercent: sellingCostsPercentInput,
   };
 
   const saveResults = {
@@ -109,23 +121,23 @@ export default function BuilderRoiPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               {[
-                { label: 'Land Cost', value: landCost, setter: setLandCost },
-                { label: 'Site Prep / Utilities', value: sitePrepUtilities, setter: setSitePrepUtilities },
-                { label: 'Hard Cost ($/sqft)', value: hardCostPerSqFt, setter: setHardCostPerSqFt },
-                { label: 'Square Footage', value: squareFootage, setter: setSquareFootage },
-                { label: 'Soft Costs', value: softCosts, setter: setSoftCosts },
-                { label: 'Construction Loan Amount', value: loanAmount, setter: setLoanAmount },
-                { label: 'Loan Interest Rate %', value: loanInterestRate, setter: setLoanInterestRate },
-                { label: 'Build Duration (months)', value: buildDurationMonths, setter: setBuildDurationMonths },
-                { label: 'Contingency % of Hard Cost', value: contingencyPercent, setter: setContingencyPercent },
+                { label: 'Land Cost', value: landCostInput, setter: setLandCost },
+                { label: 'Site Prep / Utilities', value: sitePrepUtilitiesInput, setter: setSitePrepUtilities },
+                { label: 'Hard Cost ($/sqft)', value: hardCostPerSqFtInput, setter: setHardCostPerSqFt },
+                { label: 'Square Footage', value: squareFootageInput, setter: setSquareFootage },
+                { label: 'Soft Costs', value: softCostsInput, setter: setSoftCosts },
+                { label: 'Construction Loan Amount', value: loanAmountInput, setter: setLoanAmount },
+                { label: 'Loan Interest Rate %', value: loanInterestRateInput, setter: setLoanInterestRate },
+                { label: 'Build Duration (months)', value: buildDurationMonthsInput, setter: setBuildDurationMonths },
+                { label: 'Contingency % of Hard Cost', value: contingencyPercentInput, setter: setContingencyPercent },
                 {
                   label: mode === 'spec' ? 'Sale Price' : 'Contract Price',
-                  value: exitPrice,
+                  value: exitPriceInput,
                   setter: setExitPrice,
                 },
                 {
                   label: 'Selling Costs %',
-                  value: sellingCostsPercent,
+                  value: sellingCostsPercentInput,
                   setter: setSellingCostsPercent,
                   hidden: mode === 'custom',
                 },
@@ -136,7 +148,8 @@ export default function BuilderRoiPage() {
                   <input
                     type="number"
                     value={field.value}
-                    onChange={(event) => field.setter(Number(event.target.value))}
+                    onChange={(event) => field.setter(event.target.value)}
+                    placeholder="0"
                     className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/20"
                   />
                 </label>

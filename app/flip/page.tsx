@@ -11,11 +11,17 @@ const formatMoney = (value: number) =>
 const formatPercent = (value: number) => `${value.toFixed(2)}%`;
 
 export default function FixAndFlipPage() {
-  const [purchasePrice, setPurchasePrice] = useState(200000);
-  const [rehabBudget, setRehabBudget] = useState(50000);
-  const [holdingCosts, setHoldingCosts] = useState(12000);
-  const [sellingCostPercent, setSellingCostPercent] = useState(8);
-  const [arv, setArv] = useState(325000);
+  const [purchasePriceInput, setPurchasePrice] = useState('200000');
+  const [rehabBudgetInput, setRehabBudget] = useState('50000');
+  const [holdingCostsInput, setHoldingCosts] = useState('12000');
+  const [sellingCostPercentInput, setSellingCostPercent] = useState('8');
+  const [arvInput, setArv] = useState('325000');
+
+  const purchasePrice = parseFloat(purchasePriceInput) || 0;
+  const rehabBudget = parseFloat(rehabBudgetInput) || 0;
+  const holdingCosts = parseFloat(holdingCostsInput) || 0;
+  const sellingCostPercent = parseFloat(sellingCostPercentInput) || 0;
+  const arv = parseFloat(arvInput) || 0;
 
   const sellingCosts = useMemo(() => (sellingCostPercent / 100) * arv, [sellingCostPercent, arv]);
   const totalInvestment = purchasePrice + rehabBudget + holdingCosts + sellingCosts;
@@ -23,11 +29,11 @@ export default function FixAndFlipPage() {
   const roi = totalInvestment ? (netProfit / totalInvestment) * 100 : 0;
   const meetsRule = purchasePrice + rehabBudget <= arv * 0.7;
   const saveInputs = {
-    purchasePrice,
-    rehabBudget,
-    holdingCosts,
-    sellingCostPercent,
-    arv,
+    purchasePrice: purchasePriceInput,
+    rehabBudget: rehabBudgetInput,
+    holdingCosts: holdingCostsInput,
+    sellingCostPercent: sellingCostPercentInput,
+    arv: arvInput,
   };
   const saveResults = {
     totalInvestment,
@@ -35,7 +41,7 @@ export default function FixAndFlipPage() {
     roi,
     meetsRule,
   };
-  const professionalSheetHref = `/flip/professional-sheet?purchasePrice=${encodeURIComponent(String(purchasePrice))}&rehabBudget=${encodeURIComponent(String(rehabBudget))}&holdingCosts=${encodeURIComponent(String(holdingCosts))}&sellingCostPercent=${encodeURIComponent(String(sellingCostPercent))}&arv=${encodeURIComponent(String(arv))}&totalInvestment=${encodeURIComponent(String(totalInvestment))}&netProfit=${encodeURIComponent(String(netProfit))}&roi=${encodeURIComponent(String(roi))}&meetsRule=${encodeURIComponent(meetsRule ? '1' : '0')}`;
+  const professionalSheetHref = `/flip/professional-sheet?purchasePrice=${encodeURIComponent(purchasePriceInput)}&rehabBudget=${encodeURIComponent(rehabBudgetInput)}&holdingCosts=${encodeURIComponent(holdingCostsInput)}&sellingCostPercent=${encodeURIComponent(sellingCostPercentInput)}&arv=${encodeURIComponent(arvInput)}&totalInvestment=${encodeURIComponent(String(totalInvestment))}&netProfit=${encodeURIComponent(String(netProfit))}&roi=${encodeURIComponent(String(roi))}&meetsRule=${encodeURIComponent(meetsRule ? '1' : '0')}`;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -52,18 +58,19 @@ export default function FixAndFlipPage() {
           <section className="space-y-6 rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
             <div className="grid gap-4 sm:grid-cols-2">
               {[
-                { label: 'Purchase Price', value: purchasePrice, setter: setPurchasePrice },
-                { label: 'Rehab Budget', value: rehabBudget, setter: setRehabBudget },
-                { label: 'Holding Costs', value: holdingCosts, setter: setHoldingCosts },
-                { label: 'Selling Cost %', value: sellingCostPercent, setter: setSellingCostPercent },
-                { label: 'After Repair Value (ARV)', value: arv, setter: setArv },
+                { label: 'Purchase Price', value: purchasePriceInput, setter: setPurchasePrice },
+                { label: 'Rehab Budget', value: rehabBudgetInput, setter: setRehabBudget },
+                { label: 'Holding Costs', value: holdingCostsInput, setter: setHoldingCosts },
+                { label: 'Selling Cost %', value: sellingCostPercentInput, setter: setSellingCostPercent },
+                { label: 'After Repair Value (ARV)', value: arvInput, setter: setArv },
               ].map((field) => (
                 <label key={field.label} className="space-y-2 text-sm text-slate-300">
                   <span className="font-medium text-slate-100">{field.label}</span>
                   <input
                     type="number"
                     value={field.value}
-                    onChange={(event) => field.setter(Number(event.target.value))}
+                    onChange={(event) => field.setter(event.target.value)}
+                    placeholder="0"
                     className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400/70 focus:ring-2 focus:ring-cyan-400/20"
                   />
                 </label>

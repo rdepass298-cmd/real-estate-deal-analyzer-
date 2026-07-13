@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Real Estate Analyzer',
-  description: 'Analyze rental, fix and flip, seller net sheet, and builder ROI scenarios.',
+  description: 'Analyze rental, fix and flip, seller net sheet, builder ROI, and buyer affordability scenarios.',
 };
 
 const cards = [
@@ -14,6 +14,7 @@ const cards = [
   { title: 'Fix and Flip', description: 'Evaluate renovation costs, resale value, and profit potential.', href: '/flip' },
   { title: 'Seller Net Sheet', description: 'Calculate seller proceeds after closing costs and commissions.', href: '/seller' },
   { title: 'Builder ROI', description: 'Model build costs, carry, and resale margins for spec or custom projects.', href: '/buyer' },
+  { title: 'Buyer Affordability', description: 'Estimate max purchase price, monthly PITI, and closing cash position.', href: '/affordability' },
 ];
 
 export default async function CalculatorsPage() {
@@ -57,7 +58,7 @@ export default async function CalculatorsPage() {
           <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Real estate tools</p>
           <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">Real Estate Analyzer</h1>
           <p className="mx-auto mt-4 max-w-2xl text-slate-300 sm:text-lg">
-            Explore rental, flip, seller, and builder ROI/new construction scenarios with fast, modern calculation tools tailored for investors.
+            Explore rental, flip, seller, builder ROI/new construction, and buyer affordability scenarios with fast, modern calculation tools tailored for investors.
           </p>
         </section>
 
