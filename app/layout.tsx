@@ -3,17 +3,17 @@ import AuthHeader from './components/AuthHeader';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Real Estate Analyzer',
-  description: 'A modern real estate analysis landing page.',
+	title: 'Real Estate Analyzer',
+	description: 'A modern real estate analysis landing page.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>
-        <AuthHeader />
-        {children}
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body>
+				<AuthHeader />
+				{children}
+			</body>
+		</html>
+	);
 }
