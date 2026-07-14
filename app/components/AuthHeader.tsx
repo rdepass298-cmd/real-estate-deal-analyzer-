@@ -122,13 +122,13 @@ export default function AuthHeader() {
             ) : (
               <>
                 <Link href="/auth/login" className="text-sm font-medium text-cyan-300 transition hover:text-cyan-200">
-                  Login
+                  Log in
                 </Link>
                 <Link
                   href="/auth/signup"
                   className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20"
                 >
-                  Sign Up
+                  Sign up free
                 </Link>
               </>
             )}

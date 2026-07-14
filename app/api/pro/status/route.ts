@@ -1,14 +1,20 @@
 import { NextResponse } from 'next/server';
-import { getPaidStatusFromServerCookies } from '@/lib/server/authz';
+import { getPaidStatusFromAccessToken, getPaidStatusFromServerCookies } from '@/lib/server/authz';
 
 export async function GET(req: Request) {
   try {
-    const status = await getPaidStatusFromServerCookies();
+    const authHeader = req.headers.get('authorization');
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    const status = token
+      ? await getPaidStatusFromAccessToken(token)
+      : await getPaidStatusFromServerCookies();
 
     console.log('[api/pro/status] resolved user', {
       userId: status.userId,
       isAuthenticated: status.isAuthenticated,
       isPaid: status.isPaid,
+      usedAccessToken: Boolean(token),
     });
 
     if (!status.isAuthenticated) {
