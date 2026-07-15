@@ -13,6 +13,8 @@ export default function ResetPasswordPage() {
  const [loading, setLoading] = useState(false);
  const [checkingLink, setCheckingLink] = useState(true);
  const [invalidLink, setInvalidLink] = useState(false);
+ const [linkCheckError, setLinkCheckError] = useState('');
+ const INVALID_LINK_MESSAGE = 'This reset link is invalid or has expired. Request a new one.';
 
  useEffect(() => {
   let mounted = true;
@@ -50,9 +52,11 @@ export default function ResetPasswordPage() {
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
       if (exchangeError) {
+       console.error('exchangeCodeForSession error:', exchangeError);
        if (!mounted) return;
        setInvalidLink(true);
-       setError('This reset link is invalid or has expired. Request a new one.');
+        setLinkCheckError(exchangeError.message);
+       setError(exchangeError.message);
        setCheckingLink(false);
        return;
       }
@@ -133,7 +137,7 @@ export default function ResetPasswordPage() {
     <div className="mx-auto max-w-md rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/20">
      <p className="text-sm uppercase tracking-[0.35em] text-gold-light">Authentication</p>
      <h1 className="mt-3 text-3xl font-semibold">Reset Password</h1>
-     <p className="mt-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">{error}</p>
+    <p className="mt-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">{linkCheckError || INVALID_LINK_MESSAGE}</p>
      <p className="mt-6 text-sm">
       <Link href="/auth/forgot-password" className="text-gold-light transition hover:text-gold-light">
        Request a new reset link
