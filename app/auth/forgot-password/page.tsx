@@ -1,0 +1,85 @@
+'use client';
+
+import Link from 'next/link';
+import { useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+
+export default function ForgotPasswordPage() {
+ const [email, setEmail] = useState('');
+ const [error, setError] = useState('');
+ const [message, setMessage] = useState('');
+ const [loading, setLoading] = useState(false);
+
+ const handleResetRequest = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+  setMessage('');
+
+  if (!email.trim()) {
+   setError('Please enter an email address');
+   return;
+  }
+
+  setLoading(true);
+
+  const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+   redirectTo: 'https://www.homesiq.io/auth/reset-password',
+  });
+
+  if (resetError) {
+   setError(resetError.message);
+   setLoading(false);
+   return;
+  }
+
+  setMessage("If an account exists for that email, we've sent a reset link.");
+  setLoading(false);
+ };
+
+ return (
+  <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
+   <div className="mx-auto max-w-md rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/20">
+    <div className="mb-8">
+     <p className="text-sm uppercase tracking-[0.35em] text-gold-light">Authentication</p>
+     <h1 className="mt-3 text-3xl font-semibold">Forgot Password</h1>
+    </div>
+
+    <form onSubmit={handleResetRequest} className="space-y-6">
+     {error ? (
+      <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>
+     ) : null}
+
+     {message ? (
+      <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-4 text-sm text-slate-200">{message}</div>
+     ) : null}
+
+     <label className="space-y-2 text-sm text-slate-300">
+      <span className="font-medium text-slate-100">Email</span>
+      <input
+       type="email"
+       value={email}
+       onChange={(e) => setEmail(e.target.value)}
+       placeholder="you@example.com"
+       className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition focus:border-gold/70 focus:ring-2 focus:ring-gold/20"
+       disabled={loading}
+      />
+     </label>
+
+     <button
+      type="submit"
+      disabled={loading}
+      className="w-full rounded-2xl bg-gold px-6 py-3 font-semibold text-gold-dark transition hover:bg-gold/90 disabled:opacity-50"
+     >
+      {loading ? 'Sending reset link...' : 'Send reset link'}
+     </button>
+    </form>
+
+    <p className="mt-6 text-center text-sm text-slate-400">
+     <Link href="/auth/login" className="text-gold-light transition hover:text-gold-light">
+      Back to Log in
+     </Link>
+    </p>
+   </div>
+  </main>
+ );
+}

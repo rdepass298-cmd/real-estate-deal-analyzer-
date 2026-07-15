@@ -90,7 +90,12 @@ export default function LoginPage() {
  </label>
 
  <label className="space-y-2 text-sm text-slate-300">
+ <div className="flex items-center justify-between">
  <span className="font-medium text-slate-100">Password</span>
+ <Link href="/auth/forgot-password" className="text-xs font-medium text-gold-light transition hover:text-gold-light">
+ Forgot password?
+ </Link>
+ </div>
  <input
  type="password"
  value={password}
