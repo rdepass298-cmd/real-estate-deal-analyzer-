@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
- title: 'Real Estate Analyzer',
+ title: 'HomesIQ',
  description: 'Analyze rental, fix and flip, seller net sheet, builder ROI, and buyer affordability scenarios.',
 };
 
@@ -56,7 +56,7 @@ export default async function CalculatorsPage() {
  <div className="mx-auto max-w-6xl">
  <section className="mb-12 text-center">
  <p className="text-sm uppercase tracking-[0.3em] text-gold-light">Real estate tools</p>
- <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">Real Estate Analyzer</h1>
+ <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">HomesIQ</h1>
  <p className="mx-auto mt-4 max-w-2xl text-slate-300 sm:text-lg">
  Explore rental, flip, seller, builder ROI/new construction, and buyer affordability scenarios with fast, modern calculation tools tailored for investors.
  </p>

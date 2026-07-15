@@ -82,7 +82,7 @@ export default async function RentalProfessionalSheetPage({ searchParams }: Page
  <header className="border-b border-slate-300 pb-6">
  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
  <div>
- <p className="text-sm uppercase tracking-[0.2em] text-slate-600">Real Estate Analyzer</p>
+ <p className="text-sm uppercase tracking-[0.2em] text-slate-600">HomesIQ</p>
  <h1 className="mt-2 text-3xl font-semibold text-slate-900">Rental Analysis</h1>
  </div>
  <p className="text-sm text-slate-600">Date: {today}</p>
@@ -130,7 +130,7 @@ export default async function RentalProfessionalSheetPage({ searchParams }: Page
  </section>
 
  <footer className="mt-10 border-t border-slate-300 pt-4 text-sm text-slate-600">
- Prepared by Real Estate Analyzer
+ Prepared by HomesIQ
  </footer>
  </article>
  </div>

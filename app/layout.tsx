@@ -3,7 +3,7 @@ import AuthHeader from './components/AuthHeader';
 import './globals.css';
 
 export const metadata: Metadata = {
-	title: 'Real Estate Analyzer',
+	title: 'HomesIQ',
 	description: 'A modern real estate analysis landing page.',
 };
 

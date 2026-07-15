@@ -89,7 +89,7 @@ export default function AuthHeader() {
  <div className="mx-auto max-w-6xl px-6 py-4">
  <div className="flex items-center justify-between">
  <Link href="/" className="text-lg font-semibold text-gold-light transition hover:text-gold-light">
- Real Estate Analyzer
+ HomesIQ
  </Link>
 
  <div className="flex items-center gap-4">
