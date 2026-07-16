@@ -52,11 +52,10 @@ export default function ResetPasswordPage() {
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
       if (exchangeError) {
-       console.error('exchangeCodeForSession error:', exchangeError);
        if (!mounted) return;
        setInvalidLink(true);
-        setLinkCheckError(exchangeError.message);
-       setError(exchangeError.message);
+       setLinkCheckError(INVALID_LINK_MESSAGE);
+       setError(INVALID_LINK_MESSAGE);
        setCheckingLink(false);
        return;
       }
