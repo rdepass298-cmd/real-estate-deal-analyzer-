@@ -18,6 +18,8 @@ export default function ResetPasswordPage() {
 
  useEffect(() => {
   let mounted = true;
+  let resolved = false;
+  let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
 
   const prepareRecoverySession = async () => {
    try {
@@ -27,6 +29,50 @@ export default function ResetPasswordPage() {
     const tokenHash = search.get('token_hash') || hash.get('token_hash');
     const type = search.get('type') || hash.get('type');
     const code = search.get('code');
+    let authSubscription: { unsubscribe: () => void } | null = null;
+
+    const clearFallbackTimer = () => {
+     if (fallbackTimer) {
+      clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+     }
+    };
+
+    const clearAuthSubscription = () => {
+     if (authSubscription) {
+      authSubscription.unsubscribe();
+      authSubscription = null;
+     }
+    };
+
+    const markValid = () => {
+      if (!mounted || resolved) return;
+      resolved = true;
+      clearFallbackTimer();
+      clearAuthSubscription();
+      setInvalidLink(false);
+      setLinkCheckError('');
+      setError('');
+      setCheckingLink(false);
+    };
+
+    const markInvalid = (message = INVALID_LINK_MESSAGE) => {
+      if (!mounted || resolved) return;
+      resolved = true;
+      clearFallbackTimer();
+      clearAuthSubscription();
+      setInvalidLink(true);
+      setLinkCheckError(message);
+      setError(message);
+      setCheckingLink(false);
+    };
+
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+        markValid();
+      }
+    });
+    authSubscription = data.subscription;
 
     if (tokenHash && type === 'recovery') {
      const { error: verifyError } = await supabase.auth.verifyOtp({
@@ -35,16 +81,11 @@ export default function ResetPasswordPage() {
      });
 
      if (verifyError) {
-      if (!mounted) return;
-      setInvalidLink(true);
-      setError('This reset link is invalid or has expired. Request a new one.');
-      setCheckingLink(false);
+      markInvalid();
       return;
      }
 
-     if (!mounted) return;
-     setInvalidLink(false);
-     setCheckingLink(false);
+     markValid();
      return;
     }
 
@@ -52,17 +93,11 @@ export default function ResetPasswordPage() {
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
       if (exchangeError) {
-       if (!mounted) return;
-       setInvalidLink(true);
-       setLinkCheckError(INVALID_LINK_MESSAGE);
-       setError(INVALID_LINK_MESSAGE);
-       setCheckingLink(false);
+       markInvalid();
        return;
       }
 
-      if (!mounted) return;
-      setInvalidLink(false);
-      setCheckingLink(false);
+      markValid();
       return;
     }
 
@@ -70,17 +105,28 @@ export default function ResetPasswordPage() {
      data: { session },
     } = await supabase.auth.getSession();
 
-    if (!mounted) return;
-
-    if (!session) {
-     setInvalidLink(true);
-     setError('This reset link is invalid or has expired. Request a new one.');
+    if (session) {
+     markValid();
+     return;
     }
 
-    setCheckingLink(false);
+    fallbackTimer = setTimeout(async () => {
+     const {
+      data: { session: delayedSession },
+     } = await supabase.auth.getSession();
+
+     if (delayedSession) {
+      markValid();
+      return;
+     }
+
+     markInvalid();
+    }, 3000);
    } catch {
-    if (!mounted) return;
+    if (!mounted || resolved) return;
+    resolved = true;
     setInvalidLink(true);
+    setLinkCheckError('Unable to validate the reset link. Request a new one.');
     setError('Unable to validate the reset link. Request a new one.');
     setCheckingLink(false);
    }
@@ -89,6 +135,9 @@ export default function ResetPasswordPage() {
   prepareRecoverySession();
 
   return () => {
+   if (fallbackTimer) {
+    clearTimeout(fallbackTimer);
+   }
    mounted = false;
   };
  }, []);
