@@ -19,7 +19,7 @@ export default function ResetPasswordPage() {
  useEffect(() => {
   let mounted = true;
   let resolved = false;
-  let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+  let sessionPollInterval: ReturnType<typeof setInterval> | null = null;
 
   const prepareRecoverySession = async () => {
    try {
@@ -29,27 +29,18 @@ export default function ResetPasswordPage() {
     const tokenHash = search.get('token_hash') || hash.get('token_hash');
     const type = search.get('type') || hash.get('type');
     const code = search.get('code');
-    let authSubscription: { unsubscribe: () => void } | null = null;
 
-    const clearFallbackTimer = () => {
-     if (fallbackTimer) {
-      clearTimeout(fallbackTimer);
-      fallbackTimer = null;
-     }
-    };
-
-    const clearAuthSubscription = () => {
-     if (authSubscription) {
-      authSubscription.unsubscribe();
-      authSubscription = null;
+    const clearSessionPoll = () => {
+     if (sessionPollInterval) {
+      clearInterval(sessionPollInterval);
+      sessionPollInterval = null;
      }
     };
 
     const markValid = () => {
       if (!mounted || resolved) return;
       resolved = true;
-      clearFallbackTimer();
-      clearAuthSubscription();
+      clearSessionPoll();
       setInvalidLink(false);
       setLinkCheckError('');
       setError('');
@@ -59,20 +50,12 @@ export default function ResetPasswordPage() {
     const markInvalid = (message = INVALID_LINK_MESSAGE) => {
       if (!mounted || resolved) return;
       resolved = true;
-      clearFallbackTimer();
-      clearAuthSubscription();
+      clearSessionPoll();
       setInvalidLink(true);
       setLinkCheckError(message);
       setError(message);
       setCheckingLink(false);
     };
-
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
-        markValid();
-      }
-    });
-    authSubscription = data.subscription;
 
     if (tokenHash && type === 'recovery') {
      const { error: verifyError } = await supabase.auth.verifyOtp({
@@ -101,27 +84,23 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    const {
-     data: { session },
-    } = await supabase.auth.getSession();
-
-    if (session) {
-     markValid();
-     return;
-    }
-
-    fallbackTimer = setTimeout(async () => {
+    let attempts = 0;
+    sessionPollInterval = setInterval(async () => {
+     if (!mounted || resolved) return;
+     attempts += 1;
      const {
-      data: { session: delayedSession },
+      data: { session },
      } = await supabase.auth.getSession();
 
-     if (delayedSession) {
+     if (session) {
       markValid();
       return;
      }
 
-     markInvalid();
-    }, 3000);
+     if (attempts >= 20) {
+      markInvalid();
+     }
+    }, 300);
    } catch {
     if (!mounted || resolved) return;
     resolved = true;
@@ -135,8 +114,8 @@ export default function ResetPasswordPage() {
   prepareRecoverySession();
 
   return () => {
-   if (fallbackTimer) {
-    clearTimeout(fallbackTimer);
+   if (sessionPollInterval) {
+    clearInterval(sessionPollInterval);
    }
    mounted = false;
   };
