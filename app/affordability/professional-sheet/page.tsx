@@ -57,6 +57,7 @@ export default async function AffordabilityProfessionalSheetPage({ searchParams 
 
  const preApprovalAmount = parseNumber(searchParams, 'preApprovalAmount', 0);
  const availableCash = parseNumber(searchParams, 'availableCash', 0);
+ const cashReserves = parseNumber(searchParams, 'cashReserves', 10000);
  const interestRate = parseNumber(searchParams, 'interestRate', 7);
  const termYears = parseNumber(searchParams, 'termYears', 30);
  const propertyTaxRate = parseNumber(searchParams, 'propertyTaxRate', 1.1);
@@ -64,15 +65,16 @@ export default async function AffordabilityProfessionalSheetPage({ searchParams 
  const closingCostsPercent = parseNumber(searchParams, 'closingCostsPercent', 3);
 
  const closingRate = closingCostsPercent / 100;
- const maxPurchasePrice = closingRate <= -1 ? 0 : (preApprovalAmount + availableCash) / (1 + closingRate);
+ const usableCash = Math.max(availableCash - cashReserves, 0);
+ const maxPurchasePrice = closingRate <= -1 ? 0 : (preApprovalAmount + usableCash) / (1 + closingRate);
  const closingCostsAtMaxPrice = maxPurchasePrice * closingRate;
- const downPaymentAvailable = availableCash - closingCostsAtMaxPrice;
+ const downPaymentAvailable = usableCash - closingCostsAtMaxPrice;
  const loanAmount = maxPurchasePrice - downPaymentAvailable;
  const monthlyPrincipalAndInterest = calculateMortgage(loanAmount, interestRate, termYears);
  const monthlyPropertyTax = (propertyTaxRate / 100) * maxPurchasePrice / 12;
  const monthlyInsurance = annualInsurance / 12;
  const estimatedMonthlyPiti = monthlyPrincipalAndInterest + monthlyPropertyTax + monthlyInsurance;
- const cashRemainingAfterClosing = availableCash - downPaymentAvailable - closingCostsAtMaxPrice;
+ const monthsOfReserves = estimatedMonthlyPiti > 0 ? cashReserves / estimatedMonthlyPiti : 0;
 
  const today = new Date().toLocaleDateString('en-US', {
  year: 'numeric',
@@ -110,6 +112,7 @@ export default async function AffordabilityProfessionalSheetPage({ searchParams 
  <dl className="mt-4 space-y-3 text-sm">
  <div className="flex items-center justify-between gap-4"><dt className="text-slate-600">Lender pre-approval amount</dt><dd className="font-medium text-slate-900">{formatMoney(preApprovalAmount)}</dd></div>
  <div className="flex items-center justify-between gap-4"><dt className="text-slate-600">Available cash</dt><dd className="font-medium text-slate-900">{formatMoney(availableCash)}</dd></div>
+ <div className="flex items-center justify-between gap-4"><dt className="text-slate-600">Cash reserves to keep</dt><dd className="font-medium text-slate-900">{formatMoney(cashReserves)}</dd></div>
  <div className="flex items-center justify-between gap-4"><dt className="text-slate-600">Annual interest rate (%)</dt><dd className="font-medium text-slate-900">{formatPercent(interestRate)}</dd></div>
  <div className="flex items-center justify-between gap-4"><dt className="text-slate-600">Loan term in years</dt><dd className="font-medium text-slate-900">{termYears}</dd></div>
  <div className="flex items-center justify-between gap-4"><dt className="text-slate-600">Property tax rate (% per year)</dt><dd className="font-medium text-slate-900">{formatPercent(propertyTaxRate)}</dd></div>
@@ -130,8 +133,9 @@ export default async function AffordabilityProfessionalSheetPage({ searchParams 
  <dd className="mt-1 text-3xl font-semibold text-slate-900">{formatMoney(estimatedMonthlyPiti)}</dd>
  </div>
  <div className="border-t border-slate-200 pt-4">
- <dt className="text-sm text-slate-600">Cash Remaining After Closing</dt>
- <dd className="mt-1 text-3xl font-semibold text-slate-900">{formatMoney(cashRemainingAfterClosing)}</dd>
+ <dt className="text-sm text-slate-600">Cash Reserves After Closing</dt>
+ <dd className="mt-1 text-3xl font-semibold text-slate-900">{formatMoney(cashReserves)}</dd>
+ <p className="mt-1 text-sm text-slate-600">{monthsOfReserves.toFixed(1)} months of PITI</p>
  </div>
  </dl>
  <p className="mt-5 rounded-2xl border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-800">
