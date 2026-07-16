@@ -11,17 +11,10 @@ export default function ResetPasswordPage() {
  const [confirmPassword, setConfirmPassword] = useState('');
  const [error, setError] = useState('');
  const [loading, setLoading] = useState(false);
- const [checkingLink, setCheckingLink] = useState(true);
- const [invalidLink, setInvalidLink] = useState(false);
- const [linkCheckError, setLinkCheckError] = useState('');
- const INVALID_LINK_MESSAGE = 'This reset link is invalid or has expired. Request a new one.';
+ const [showRequestNewLink, setShowRequestNewLink] = useState(false);
 
  useEffect(() => {
-  let mounted = true;
-  let resolved = false;
-  let sessionPollInterval: ReturnType<typeof setInterval> | null = null;
-
-  const prepareRecoverySession = async () => {
+  const initializeRecoverySession = async () => {
    try {
     const search = new URLSearchParams(window.location.search);
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -30,100 +23,29 @@ export default function ResetPasswordPage() {
     const type = search.get('type') || hash.get('type');
     const code = search.get('code');
 
-    const clearSessionPoll = () => {
-     if (sessionPollInterval) {
-      clearInterval(sessionPollInterval);
-      sessionPollInterval = null;
-     }
-    };
-
-    const markValid = () => {
-      if (!mounted || resolved) return;
-      resolved = true;
-      clearSessionPoll();
-      setInvalidLink(false);
-      setLinkCheckError('');
-      setError('');
-      setCheckingLink(false);
-    };
-
-    const markInvalid = (message = INVALID_LINK_MESSAGE) => {
-      if (!mounted || resolved) return;
-      resolved = true;
-      clearSessionPoll();
-      setInvalidLink(true);
-      setLinkCheckError(message);
-      setError(message);
-      setCheckingLink(false);
-    };
-
     if (tokenHash && type === 'recovery') {
-     const { error: verifyError } = await supabase.auth.verifyOtp({
+     await supabase.auth.verifyOtp({
       type: 'recovery',
       token_hash: tokenHash,
      });
-
-     if (verifyError) {
-      markInvalid();
-      return;
-     }
-
-     markValid();
      return;
     }
 
     if (code) {
-      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-
-      if (exchangeError) {
-       markInvalid();
-       return;
-      }
-
-      markValid();
-      return;
+     await supabase.auth.exchangeCodeForSession(code);
     }
-
-    let attempts = 0;
-    sessionPollInterval = setInterval(async () => {
-     if (!mounted || resolved) return;
-     attempts += 1;
-     const {
-      data: { session },
-     } = await supabase.auth.getSession();
-
-     if (session) {
-      markValid();
-      return;
-     }
-
-     if (attempts >= 20) {
-      markInvalid();
-     }
-    }, 300);
    } catch {
-    if (!mounted || resolved) return;
-    resolved = true;
-    setInvalidLink(true);
-    setLinkCheckError('Unable to validate the reset link. Request a new one.');
-    setError('Unable to validate the reset link. Request a new one.');
-    setCheckingLink(false);
+    // Intentionally ignored: password update response is the source of truth.
    }
   };
 
-  prepareRecoverySession();
-
-  return () => {
-   if (sessionPollInterval) {
-    clearInterval(sessionPollInterval);
-   }
-   mounted = false;
-  };
+  initializeRecoverySession();
  }, []);
 
  const handlePasswordUpdate = async (e: React.FormEvent) => {
   e.preventDefault();
   setError('');
+  setShowRequestNewLink(false);
 
   if (password.length < 6) {
    setError('Password must be at least 6 characters');
@@ -141,39 +63,15 @@ export default function ResetPasswordPage() {
 
   if (updateError) {
    setError(updateError.message);
+    if (updateError.message.toLowerCase().includes('session')) {
+     setShowRequestNewLink(true);
+    }
    setLoading(false);
    return;
   }
 
   router.push('/calculators');
  };
-
- if (checkingLink) {
-  return (
-   <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
-    <div className="mx-auto max-w-md rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/20">
-     <p className="text-sm text-slate-300">Validating your reset link...</p>
-    </div>
-   </main>
-  );
- }
-
- if (invalidLink) {
-  return (
-   <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
-    <div className="mx-auto max-w-md rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/20">
-     <p className="text-sm uppercase tracking-[0.35em] text-gold-light">Authentication</p>
-     <h1 className="mt-3 text-3xl font-semibold">Reset Password</h1>
-    <p className="mt-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-200">{linkCheckError || INVALID_LINK_MESSAGE}</p>
-     <p className="mt-6 text-sm">
-      <Link href="/auth/forgot-password" className="text-gold-light transition hover:text-gold-light">
-       Request a new reset link
-      </Link>
-     </p>
-    </div>
-   </main>
-  );
- }
 
  return (
   <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -185,7 +83,14 @@ export default function ResetPasswordPage() {
 
     <form onSubmit={handlePasswordUpdate} className="space-y-6">
      {error ? (
-      <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>
+      <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
+       <p>{error}</p>
+       {showRequestNewLink ? (
+        <Link href="/auth/forgot-password" className="mt-2 inline-block text-gold-light transition hover:text-gold-light">
+         Request a new reset link
+        </Link>
+       ) : null}
+      </div>
      ) : null}
 
      <label className="space-y-2 text-sm text-slate-300">
