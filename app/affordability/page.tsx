@@ -25,6 +25,7 @@ const calculateMortgage = (loan: number, annualRate: number, years: number) => {
 export default function BuyerAffordabilityPage() {
  const [preApprovalAmountInput, setPreApprovalAmount] = useState('');
  const [availableCashInput, setAvailableCash] = useState('');
+ const [cashReservesInput, setCashReserves] = useState('10000');
  const [interestRateInput, setInterestRate] = useState('7');
  const [termYearsInput, setTermYears] = useState('30');
  const [propertyTaxRateInput, setPropertyTaxRate] = useState('1.1');
@@ -33,6 +34,7 @@ export default function BuyerAffordabilityPage() {
 
  const preApprovalAmount = parseFloat(preApprovalAmountInput) || 0;
  const availableCash = parseFloat(availableCashInput) || 0;
+ const cashReserves = parseFloat(cashReservesInput) || 0;
  const interestRate = parseFloat(interestRateInput) || 0;
  const termYears = parseFloat(termYearsInput) || 0;
  const propertyTaxRate = parseFloat(propertyTaxRateInput) || 0;
@@ -40,14 +42,15 @@ export default function BuyerAffordabilityPage() {
  const closingCostsPercent = parseFloat(closingCostsPercentInput) || 0;
 
  const closingRate = closingCostsPercent / 100;
+ const usableCash = Math.max(availableCash - cashReserves, 0);
 
  const maxPurchasePrice = useMemo(() => {
  if (closingRate <= -1) return 0;
- return (preApprovalAmount + availableCash) / (1 + closingRate);
- }, [preApprovalAmount, availableCash, closingRate]);
+ return (preApprovalAmount + usableCash) / (1 + closingRate);
+ }, [preApprovalAmount, usableCash, closingRate]);
 
  const closingCostsAtMaxPrice = maxPurchasePrice * closingRate;
- const downPaymentAvailable = availableCash - closingCostsAtMaxPrice;
+ const downPaymentAvailable = usableCash - closingCostsAtMaxPrice;
  const loanAmount = maxPurchasePrice - downPaymentAvailable;
  const monthlyPrincipalAndInterest = useMemo(
  () => calculateMortgage(loanAmount, interestRate, termYears),
@@ -56,11 +59,12 @@ export default function BuyerAffordabilityPage() {
  const monthlyPropertyTax = (propertyTaxRate / 100) * maxPurchasePrice / 12;
  const monthlyInsurance = annualInsurance / 12;
  const estimatedMonthlyPiti = monthlyPrincipalAndInterest + monthlyPropertyTax + monthlyInsurance;
- const cashRemainingAfterClosing = availableCash - downPaymentAvailable - closingCostsAtMaxPrice;
+ const monthsOfReserves = estimatedMonthlyPiti > 0 ? cashReserves / estimatedMonthlyPiti : 0;
 
  const saveInputs = {
  preApprovalAmount: preApprovalAmountInput,
  availableCash: availableCashInput,
+ cashReserves: cashReservesInput,
  interestRate: interestRateInput,
  termYears: termYearsInput,
  propertyTaxRate: propertyTaxRateInput,
@@ -71,10 +75,11 @@ export default function BuyerAffordabilityPage() {
  const saveResults = {
  maxPurchasePrice,
  estimatedMonthlyPiti,
- cashRemainingAfterClosing,
+ cashReserves,
+ monthsOfReserves,
  };
 
- const professionalSheetHref = `/affordability/professional-sheet?preApprovalAmount=${encodeURIComponent(preApprovalAmountInput)}&availableCash=${encodeURIComponent(availableCashInput)}&interestRate=${encodeURIComponent(interestRateInput)}&termYears=${encodeURIComponent(termYearsInput)}&propertyTaxRate=${encodeURIComponent(propertyTaxRateInput)}&annualInsurance=${encodeURIComponent(annualInsuranceInput)}&closingCostsPercent=${encodeURIComponent(closingCostsPercentInput)}`;
+ const professionalSheetHref = `/affordability/professional-sheet?preApprovalAmount=${encodeURIComponent(preApprovalAmountInput)}&availableCash=${encodeURIComponent(availableCashInput)}&cashReserves=${encodeURIComponent(cashReservesInput)}&interestRate=${encodeURIComponent(interestRateInput)}&termYears=${encodeURIComponent(termYearsInput)}&propertyTaxRate=${encodeURIComponent(propertyTaxRateInput)}&annualInsurance=${encodeURIComponent(annualInsuranceInput)}&closingCostsPercent=${encodeURIComponent(closingCostsPercentInput)}`;
 
  return (
  <main className="min-h-screen bg-slate-950 text-slate-100 px-6 py-10 sm:px-10">
@@ -98,6 +103,12 @@ export default function BuyerAffordabilityPage() {
  helperText: 'from your pre-approval letter',
  },
  { label: 'Available cash', value: availableCashInput, setter: setAvailableCash },
+ {
+ label: 'Cash reserves to keep ($)',
+ value: cashReservesInput,
+ setter: setCashReserves,
+ helperText: 'cash you want left over after closing',
+ },
  { label: 'Annual interest rate (%)', value: interestRateInput, setter: setInterestRate },
  { label: 'Loan term in years', value: termYearsInput, setter: setTermYears },
  { label: 'Property tax rate (% per year)', value: propertyTaxRateInput, setter: setPropertyTaxRate },
@@ -121,6 +132,11 @@ export default function BuyerAffordabilityPage() {
 
  <section className="space-y-6 rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
  <h2 className="text-xl font-semibold text-white">Results</h2>
+ {cashReserves > availableCash ? (
+ <p className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
+ Reserves exceed available cash - nothing left for a down payment.
+ </p>
+ ) : null}
  <div className="grid gap-4">
  <div className="rounded-3xl bg-slate-900/80 p-5">
  <p className="text-sm text-slate-400">Max purchase price</p>
@@ -131,8 +147,15 @@ export default function BuyerAffordabilityPage() {
  <p className="mt-2 text-3xl font-semibold text-white">{formatMoney(estimatedMonthlyPiti)}</p>
  </div>
  <div className="rounded-3xl bg-slate-900/80 p-5">
- <p className="text-sm text-slate-400">Cash remaining after closing</p>
- <p className="mt-2 text-3xl font-semibold text-white">{formatMoney(cashRemainingAfterClosing)}</p>
+ <p className="text-sm text-slate-400">Cash reserves after closing</p>
+ <p className="mt-2 text-3xl font-semibold text-white">{formatMoney(cashReserves)}</p>
+ {monthsOfReserves < 2 ? (
+ <p className="mt-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
+ {monthsOfReserves.toFixed(1)} months of PITI. Below the 2-6 months most lenders want to see.
+ </p>
+ ) : (
+ <p className="mt-3 text-sm text-slate-400">{monthsOfReserves.toFixed(1)} months of PITI</p>
+ )}
  </div>
  <p className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
  Estimate only - subject to lender verification.
