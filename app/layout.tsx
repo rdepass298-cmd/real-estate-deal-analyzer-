@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/react';
 import AuthHeader from './components/AuthHeader';
 import './globals.css';
 
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			<body>
 				<AuthHeader />
 				{children}
+				<Analytics />
 			</body>
 		</html>
 	);
