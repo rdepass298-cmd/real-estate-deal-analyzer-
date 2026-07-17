@@ -1,13 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { ensureProfile } from '@/lib/ensureProfile';
 
 export default function SignUpPage() {
- const router = useRouter();
  const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
  const [confirmPassword, setConfirmPassword] = useState('');
@@ -61,10 +59,13 @@ export default function SignUpPage() {
  });
  }
 
- setSuccess('Account created successfully! Redirecting...');
- setTimeout(() => {
- router.push('/');
- }, 1500);
+ if (data.session) {
+  window.location.href = '/calculators';
+  return;
+ }
+
+ setSuccess('Check your email to confirm your account before logging in.');
+ setLoading(false);
  } catch (err) {
  setError(err instanceof Error ? err.message : 'An unexpected error occurred');
  setLoading(false);
