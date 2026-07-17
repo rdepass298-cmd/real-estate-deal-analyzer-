@@ -1,23 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { ensureProfile } from '@/lib/ensureProfile';
 
 export default function LoginPage() {
- const router = useRouter();
  const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
  const [error, setError] = useState('');
  const [loading, setLoading] = useState(false);
- const [success, setSuccess] = useState('');
 
  const handleLogin = async (e: React.FormEvent) => {
  e.preventDefault();
  setError('');
- setSuccess('');
 
  if (!email.trim()) {
  setError('Please enter an email address');
@@ -50,10 +46,7 @@ export default function LoginPage() {
  });
  }
 
- setSuccess('Logged in successfully! Redirecting...');
- setTimeout(() => {
- router.push('/');
- }, 1500);
+ window.location.href = '/calculators';
  } catch (err) {
  setError(err instanceof Error ? err.message : 'An unexpected error occurred');
  setLoading(false);
@@ -71,10 +64,6 @@ export default function LoginPage() {
  <form onSubmit={handleLogin} className="space-y-6">
  {error && (
  <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">{error}</div>
- )}
-
- {success && (
- <div className="rounded-2xl border border-green-500/40 bg-green-500/10 p-4 text-sm text-green-200">{success}</div>
  )}
 
  <label className="space-y-2 text-sm text-slate-300">
