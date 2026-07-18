@@ -15,7 +15,6 @@ export default function UpgradePage() {
  const [loading, setLoading] = useState(true);
  const [submitting, setSubmitting] = useState(false);
  const [managingSubscription, setManagingSubscription] = useState(false);
- const [isPaid, setIsPaid] = useState(false);
  const [error, setError] = useState('');
 
  useEffect(() => {
@@ -28,26 +27,6 @@ export default function UpgradePage() {
  if (!authUser) {
  router.replace('/auth/login');
  return;
- }
-
- const {
- data: { session },
- } = await supabase.auth.getSession();
-
- if (session?.access_token) {
- const paidResponse = await fetch('/api/pro/status', {
- method: 'GET',
- headers: {
- Authorization: `Bearer ${session.access_token}`,
- },
- });
-
- if (paidResponse.ok) {
- const paidData = (await paidResponse.json()) as { isPaid?: boolean };
- if (mounted) {
- setIsPaid(Boolean(paidData.isPaid));
- }
- }
  }
 
  if (!mounted) {
@@ -176,7 +155,6 @@ export default function UpgradePage() {
  {submitting ? 'Redirecting to Stripe...' : 'Upgrade Now'}
  </button>
 
- {isPaid ? (
  <button
  type="button"
  onClick={handleManageSubscription}
@@ -185,7 +163,6 @@ export default function UpgradePage() {
  >
  {managingSubscription ? 'Opening Stripe portal...' : 'Manage subscription'}
  </button>
- ) : null}
 
  <Link href="/" className="text-sm font-medium text-gold-light transition hover:text-gold-light">
  Back to calculators
