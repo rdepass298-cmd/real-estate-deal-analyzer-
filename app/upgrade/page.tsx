@@ -14,6 +14,8 @@ export default function UpgradePage() {
  const [user, setUser] = useState<CurrentUser | null>(null);
  const [loading, setLoading] = useState(true);
  const [submitting, setSubmitting] = useState(false);
+ const [managingSubscription, setManagingSubscription] = useState(false);
+ const [isPaid, setIsPaid] = useState(false);
  const [error, setError] = useState('');
 
  useEffect(() => {
@@ -26,6 +28,26 @@ export default function UpgradePage() {
  if (!authUser) {
  router.replace('/auth/login');
  return;
+ }
+
+ const {
+ data: { session },
+ } = await supabase.auth.getSession();
+
+ if (session?.access_token) {
+ const paidResponse = await fetch('/api/pro/status', {
+ method: 'GET',
+ headers: {
+ Authorization: `Bearer ${session.access_token}`,
+ },
+ });
+
+ if (paidResponse.ok) {
+ const paidData = (await paidResponse.json()) as { isPaid?: boolean };
+ if (mounted) {
+ setIsPaid(Boolean(paidData.isPaid));
+ }
+ }
  }
 
  if (!mounted) {
@@ -86,6 +108,41 @@ export default function UpgradePage() {
  }
  };
 
+ const handleManageSubscription = async () => {
+ setError('');
+ setManagingSubscription(true);
+
+ try {
+ const {
+ data: { session },
+ } = await supabase.auth.getSession();
+
+ if (!session?.access_token) {
+ throw new Error('Your session expired. Please log in again.');
+ }
+
+ const response = await fetch('/api/stripe/create-portal-session', {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json',
+ Authorization: `Bearer ${session.access_token}`,
+ },
+ body: JSON.stringify({}),
+ });
+
+ const result = (await response.json()) as { url?: string; error?: string };
+
+ if (!response.ok || !result.url) {
+ throw new Error(result.error || 'Unable to open subscription portal.');
+ }
+
+ window.location.href = result.url;
+ } catch (err) {
+ setError(err instanceof Error ? err.message : 'An unexpected error occurred.');
+ setManagingSubscription(false);
+ }
+ };
+
  return (
  <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100 sm:px-10">
  <div className="mx-auto max-w-3xl rounded-3xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl shadow-slate-950/20 sm:p-10">
@@ -118,6 +175,17 @@ export default function UpgradePage() {
  >
  {submitting ? 'Redirecting to Stripe...' : 'Upgrade Now'}
  </button>
+
+ {isPaid ? (
+ <button
+ type="button"
+ onClick={handleManageSubscription}
+ disabled={loading || managingSubscription}
+ className="rounded-2xl border border-gold/40 bg-gold/10 px-6 py-3 font-semibold text-gold-light transition hover:bg-gold/20 disabled:cursor-not-allowed disabled:opacity-50"
+ >
+ {managingSubscription ? 'Opening Stripe portal...' : 'Manage subscription'}
+ </button>
+ ) : null}
 
  <Link href="/" className="text-sm font-medium text-gold-light transition hover:text-gold-light">
  Back to calculators

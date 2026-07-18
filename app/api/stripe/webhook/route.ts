@@ -27,7 +27,11 @@ function extractJwtRole(jwt: string) {
   }
 }
 
-async function setPaidStatusForUser(userId: string, isPaid: boolean) {
+async function setPaidStatusForUser(
+  userId: string,
+  isPaid: boolean,
+  stripeCustomerId?: string | null
+) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -35,10 +39,15 @@ async function setPaidStatusForUser(userId: string, isPaid: boolean) {
     throw new Error('Missing Supabase admin environment variables.');
   }
 
+  const updatePayload: { is_paid: boolean; stripe_customer_id?: string } = { is_paid: isPaid };
+  if (stripeCustomerId) {
+    updatePayload.stripe_customer_id = stripeCustomerId;
+  }
+
   const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
   const { error, count } = await supabaseAdmin
     .from('profiles')
-    .update({ is_paid: isPaid })
+    .update(updatePayload)
     .eq('id', userId)
     .select('id', { count: 'exact', head: true });
 
@@ -144,7 +153,10 @@ export async function POST(req: Request) {
             break;
           }
 
-          await setPaidStatusForUser(userId, true);
+          const stripeCustomerId =
+            typeof session.customer === 'string' ? session.customer : null;
+
+          await setPaidStatusForUser(userId, true, stripeCustomerId);
           console.log(
             `[stripe-webhook] checkout.session.completed processed: set is_paid=true for user ${userId}`
           );
